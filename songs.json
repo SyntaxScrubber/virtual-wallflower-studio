@@ -1,0 +1,266 @@
+[
+  {
+    "id": "song-1794700765977",
+    "title": "Untitled Dream-Pop Draft",
+    "alternativeTitles": [
+      "Alt Title 1",
+      "Alt Title 2"
+    ],
+    "status": "Draft",
+    "updatedAt": "2026-11-14T23:59:25.977Z",
+    "brief": {
+      "theme": "stepping out of your comfort zone",
+      "mood": "quiet defiance, pulse racing, awake",
+      "genre": "bedroom electronic / chillwave",
+      "artist": "virtual wallflower",
+      "structure": "Verse 1, Chorus, Verse 2, Chorus, Bridge, Final Chorus",
+      "titleIdea": "none yet — suggest 3 titles",
+      "includeLine": "none yet",
+      "avoid": "no cliché filler, no copying existing songs"
+    },
+    "sections": [
+      {
+        "tag": "[Verse 1]",
+        "lines": [
+          ""
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Chorus]",
+        "lines": [
+          ""
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Verse 2]",
+        "lines": [
+          ""
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Chorus]",
+        "lines": [
+          ""
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Bridge]",
+        "lines": [
+          ""
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Final Chorus]",
+        "lines": [
+          ""
+        ],
+        "cutIndices": []
+      }
+    ],
+    "alternativeChorusLines": [
+      "",
+      ""
+    ],
+    "sunoStylePrompts": [
+      "dream pop, synth-pop, warm analog pads, honest female indie vocals, 106 bpm"
+    ],
+    "writerNotes": "Set your Brief on the left and click Generate Full Draft with Gemini, or start writing directly."
+  },
+  {
+    "id": "song-porchlight-static",
+    "title": "Porchlight on the Static",
+    "alternativeTitles": [
+      "Unbuttoning the Coat",
+      "Half-Step Into Neon"
+    ],
+    "status": "Polishing",
+    "updatedAt": "2026-11-14T23:58:26.989Z",
+    "brief": {
+      "theme": "stepping out of your comfort zone",
+      "mood": "hopeful, a little nervous, warm",
+      "genre": "dream pop / synth-pop",
+      "artist": "virtual wallflower",
+      "structure": "Verse 1, Chorus, Verse 2, Chorus, Bridge, Final Chorus",
+      "titleIdea": "none yet — suggest 3 titles",
+      "includeLine": "none yet",
+      "avoid": "no cliché filler, no copying existing songs"
+    },
+    "sections": [
+      {
+        "tag": "[Verse 1]",
+        "lines": [
+          "Kept my shoes by the radiator",
+          "Rehearsed the weather in my head",
+          "Every doorknob feels like winter",
+          "When you've memorized the bed",
+          "Screen glow painting constellations",
+          "On a ceiling I outgrew"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Chorus]",
+        "lines": [
+          "Hands shake on the silver latch",
+          "Heart beats like a skipping track",
+          "I'm stepping past the porchlight hum",
+          "Into the cold where the colors run",
+          "Scared to death, but I'm finally warm",
+          "Walking out in my own storm"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Verse 2]",
+        "lines": [
+          "Ohio frost on the hatchback glass",
+          "Breath blooms white in the dashboard air",
+          "Used to fold myself like paper",
+          "Just to fit inside a chair",
+          "Now the streetlight turns to amber",
+          "And I don't pull the curtain back"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Chorus]",
+        "lines": [
+          "Hands shake on the silver latch",
+          "Heart beats like a skipping track",
+          "I'm stepping past the porchlight hum",
+          "Into the cold where the colors run",
+          "Scared to death, but I'm finally warm",
+          "Walking out in my own storm"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Bridge]",
+        "lines": [
+          "Maybe quiet doesn't mean invisible",
+          "Maybe shaking is just how engines start",
+          "Let the synth bass carry the tremors",
+          "All the way to the open part"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Final Chorus]",
+        "lines": [
+          "Hands steady on the silver latch",
+          "No more rewinding the same old track",
+          "I'm stepping past the porchlight hum",
+          "Into the night where the colors run",
+          "A little nervous, a lot alive",
+          "Walking out in my own storm"
+        ],
+        "cutIndices": []
+      }
+    ],
+    "alternativeChorusLines": [
+      "Trading the wallpaper for the wide-open static",
+      "My voice is shaking, but the melody's mine"
+    ],
+    "sunoStylePrompts": [
+      "dream pop, atmospheric synth-pop, warm analog Juno pads, crisp electronic drums, intimate female indie vocals, 108 bpm, bittersweet and hopeful",
+      "bedroom electronic, shimmering arpeggiated synths, reverb-drenched guitar swells, driving bassline, honest nocturnal vocal delivery, midtempo",
+      "indietronica, lush synthwave textures, soft vocoder harmonies, glowing chorus lift, emotional dream-pop production"
+    ],
+    "writerNotes": "Kept lines between 6–9 syllables for clean Suno phrasing. Notice how the Final Chorus shifts 'Hands shake' to 'Hands steady' to mirror the comfort-zone arc."
+  },
+  {
+    "id": "song-i71-midnight",
+    "title": "I-71 After Midnight",
+    "alternativeTitles": [
+      "Exit Sign Halo",
+      "Radio Knows My Name"
+    ],
+    "status": "Draft",
+    "updatedAt": "2026-11-14T18:58:26.989Z",
+    "brief": {
+      "theme": "driving home late after leaving a loud room early, finding peace in the quiet",
+      "mood": "2AM overthinking, honest, velvet dark",
+      "genre": "dream pop / nocturnal synth-pop",
+      "artist": "virtual wallflower",
+      "structure": "Verse 1, Chorus, Verse 2, Chorus, Bridge, Outro",
+      "titleIdea": "something about Ohio highways at night",
+      "includeLine": "the radio knows my name",
+      "avoid": "no cliché party lyrics"
+    },
+    "sections": [
+      {
+        "tag": "[Verse 1]",
+        "lines": [
+          "Left my cup on the kitchen counter",
+          "Slipped out before the second toast",
+          "Too many voices in a small room",
+          "Turn a person into a ghost"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Chorus]",
+        "lines": [
+          "Out on I-71 after midnight",
+          "Tail-lights melting into rose",
+          "The radio knows my name tonight",
+          "Better than anybody knows"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Verse 2]",
+        "lines": [
+          "Mile markers blinking like a metronome",
+          "Heater humming against my knees",
+          "Nothing wrong with wanting the quiet",
+          "More than the company"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Chorus]",
+        "lines": [
+          "Out on I-71 after midnight",
+          "Tail-lights melting into rose",
+          "The radio knows my name tonight",
+          "Better than anybody knows"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Bridge]",
+        "lines": [
+          "Overthinker in the passing lane",
+          "Letting go of every awkward line",
+          "Static turns into a lullaby",
+          "Right across the county line"
+        ],
+        "cutIndices": []
+      },
+      {
+        "tag": "[Outro]",
+        "lines": [
+          "Green dashboard glow",
+          "Almost home now",
+          "Almost home"
+        ],
+        "cutIndices": []
+      }
+    ],
+    "alternativeChorusLines": [
+      "Sixty-five miles of velvet static and I can finally breathe",
+      "Nobody asking why I'm quiet in the driver's seat"
+    ],
+    "sunoStylePrompts": [
+      "nocturnal dream pop, lush analog synth bass, soft gated reverb snare, airy introspective vocals, 100 bpm, late night drive vibe",
+      "chillwave synth-pop, warm tape saturation, shimmering synth bells, emotional minimal verse to wide chorus"
+    ],
+    "writerNotes": "Built around sparse highway imagery and gentle near-rhymes (toast/ghost, midnight/tonight)."
+  }
+]

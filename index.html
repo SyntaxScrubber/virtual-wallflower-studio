@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>virtual wallflower — AI Music Creation, Lyric Studio & Vocal Overdub DAW v3.0</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="min-h-screen flex flex-col selection:bg-purple-500/30 selection:text-purple-200">
+
+  <!-- TOP NAVIGATION / STUDIO BAR -->
+  <header class="no-print sticky top-0 z-30 border-b border-[#2a2440] bg-[#09080f]/95 backdrop-blur-md px-5 py-2.5 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500/40 via-pink-500/30 to-amber-500/20 border border-purple-400/50 flex items-center justify-center shadow-inner">
+        <span class="text-lg">🌸</span>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-base tracking-tight text-white">virtual wallflower</h1>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/25 to-pink-500/25 text-pink-200 border border-pink-400/40 font-semibold">WAVEFORM v3.0</span>
+        </div>
+        <p class="text-xs text-[#9e96b8]">Custom Song Generator • Lyric Co-Writer • Multi-Track Vocal Overdub Studio</p>
+      </div>
+    </div>
+
+    <!-- Center Status & Model Selector -->
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <div id="connectionBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#12101c] border border-[#2a2440] text-xs">
+        <span id="connectionDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+        <span id="connectionText" class="text-[#9e96b8]">Checking Gemini API...</span>
+      </div>
+
+      <select id="modelSelect" class="bg-[#12101c] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-400" title="Select Gemini Lyric Model">
+        <option value="gemini-3.8-flash">gemini-3.8-flash (Fast & Balanced)</option>
+        <option value="gemini-4-argon">gemini-4-argon (Interactive Reasoning)</option>
+        <option value="gemini-4-carbon">gemini-4-carbon (Deep Frontier)</option>
+        <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Ultra Fast)</option>
+      </select>
+
+      <button id="openSettingsBtn" class="px-3 py-1.5 rounded-lg bg-[#181526] hover:bg-[#241f38] border border-[#2a2440] text-xs font-medium text-purple-200 flex items-center gap-1.5 transition">
+        <span>⚙️</span>
+        <span>API Key & Voice Clone</span>
+      </button>
+    </div>
+
+    <!-- Right Export & Suno Quick Actions -->
+    <div class="flex items-center gap-2">
+      <button id="copySunoLyricsBtn" class="px-3 py-1.5 rounded-lg bg-purple-600/25 hover:bg-purple-600/40 border border-purple-400/40 text-xs font-semibold text-purple-100 flex items-center gap-1.5 transition">
+        <span>📋</span>
+        <span>Copy Lyrics</span>
+      </button>
+      <div class="relative group">
+        <button id="exportMenuBtn" class="px-3 py-1.5 rounded-lg bg-[#181526] hover:bg-[#241f38] border border-[#2a2440] text-xs font-medium text-white flex items-center gap-1.5 transition">
+          <span>⬇️</span>
+          <span>Export</span>
+        </button>
+        <div id="exportDropdown" class="hidden group-hover:block absolute right-0 mt-1 w-52 rounded-xl bg-[#181526] border border-[#2a2440] shadow-2xl py-1.5 z-50">
+          <button data-export="txt" class="w-full text-left px-3.5 py-2 text-xs text-gray-200 hover:bg-purple-500/20 flex items-center justify-between">
+            <span>Lyric Sheet (.txt)</span>
+            <span class="text-[#9e96b8] mono">TXT</span>
+          </button>
+          <button data-export="md" class="w-full text-left px-3.5 py-2 text-xs text-gray-200 hover:bg-purple-500/20 flex items-center justify-between">
+            <span>Full Song Packet (.md)</span>
+            <span class="text-[#9e96b8] mono">MD</span>
+          </button>
+          <button data-export="ep-md" class="w-full text-left px-3.5 py-2 text-xs text-purple-200 hover:bg-purple-500/20 flex items-center justify-between">
+            <span>EP / Album Booklet (.md)</span>
+            <span class="text-purple-300 mono">EP</span>
+          </button>
+          <button data-export="json" class="w-full text-left px-3.5 py-2 text-xs text-gray-200 hover:bg-purple-500/20 flex items-center justify-between">
+            <span>Backup Library (.json)</span>
+            <span class="text-[#9e96b8] mono">JSON</span>
+          </button>
+          <hr class="border-[#2a2440] my-1" />
+          <button data-export="print" class="w-full text-left px-3.5 py-2 text-xs text-amber-200 hover:bg-purple-500/20 flex items-center justify-between">
+            <span>Print / Save as PDF</span>
+            <span class="text-amber-300/80 mono">PDF</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN 3-COLUMN WORKSPACE -->
+  <main class="no-print flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 max-w-[1880px] w-full mx-auto">
+
+    <!-- LEFT COLUMN (3 cols): SONG LIBRARY + MULTIMODAL BRIEF BUILDER -->
+    <aside class="lg:col-span-3 flex flex-col gap-4">
+
+      <!-- Song Projects Library Card -->
+      <section class="section-card p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-purple-300">Song Projects</h2>
+            <span id="songCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-[#0e0c16] text-[#9e96b8] border border-[#2a2440]">2</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="duplicateSongBtn" class="px-2 py-1 rounded-md bg-[#0e0c16] hover:bg-purple-500/20 border border-[#2a2440] text-xs text-[#9e96b8] hover:text-white transition" title="Duplicate current song draft">
+              Duplicate
+            </button>
+            <button id="newSongBtn" class="px-2.5 py-1 rounded-md bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/40 text-xs font-medium text-purple-200 transition">
+              + New Song
+            </button>
+          </div>
+        </div>
+
+        <input id="songSearchInput" type="text" placeholder="Filter songs or EPs..." class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white placeholder-[#6b6385] focus:outline-none focus:border-purple-400" />
+
+        <div id="songListContainer" class="flex flex-col gap-1.5 max-h-44 overflow-y-auto pr-1"></div>
+      </section>
+
+      <!-- Variable Brief Builder + Multimodal Inspiration Uploader -->
+      <section class="section-card p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-purple-300">1. Lyric Agent Brief</h2>
+            <p class="text-xs text-[#9e96b8]">Write lyrics first or jump straight to Create</p>
+          </div>
+          <button id="loadPresetBriefBtn" class="text-xs text-purple-300 hover:text-purple-200 underline cursor-pointer">
+            Preset Ideas
+          </button>
+        </div>
+
+        <!-- Multimodal Inspiration-to-Brief (Photo / Voice Memo) -->
+        <div class="p-2.5 rounded-xl bg-[#0e0c16] border border-dashed border-purple-500/40 flex flex-col gap-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-purple-200">📸 Photo / Voice Memo → Brief</span>
+            <label for="inspirationFileInput" class="px-2.5 py-1 rounded-lg bg-purple-600/25 hover:bg-purple-600/40 border border-purple-400/40 text-xs font-medium text-purple-100 cursor-pointer transition">
+              Upload Media
+            </label>
+            <input id="inspirationFileInput" type="file" accept="image/*,audio/*" class="hidden" />
+          </div>
+          <p id="inspirationStatusText" class="text-xs text-[#9e96b8]">Extract theme, mood & seed lines from an image or voice memo.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-300 mb-1">Theme</label>
+          <textarea id="briefTheme" rows="2" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white placeholder-[#6b6385] focus:outline-none focus:border-purple-400"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-300 mb-1">Mood</label>
+          <input id="briefMood" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white mb-1.5 focus:outline-none focus:border-purple-400" />
+          <div class="flex flex-wrap gap-1">
+            <button type="button" data-mood-chip="hopeful, a little nervous, warm" class="pill-btn">hopeful & nervous</button>
+            <button type="button" data-mood-chip="2AM overthinking, honest, velvet dark" class="pill-btn">2AM overthinking</button>
+            <button type="button" data-mood-chip="bittersweet nostalgia, glowing at the centre" class="pill-btn">warm nostalgia</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-300 mb-1">Genre</label>
+          <input id="briefGenre" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white mb-1.5 focus:outline-none focus:border-purple-400" />
+          <div class="flex flex-wrap gap-1">
+            <button type="button" data-genre-chip="dream pop / synth-pop" class="pill-btn">dream pop / synth-pop</button>
+            <button type="button" data-genre-chip="bedroom electronic / chillwave" class="pill-btn">bedroom electronic</button>
+            <button type="button" data-genre-chip="dark synth-pop / nocturnal indie" class="pill-btn">nocturnal synth</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Artist</label>
+            <input id="briefArtist" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none" value="virtual wallflower" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Title Idea</label>
+            <input id="briefTitleIdea" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-300 mb-1">Structure</label>
+          <input id="briefStructure" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white mb-1.5 focus:outline-none" />
+          <div class="flex flex-wrap gap-1">
+            <button type="button" data-struct-add="Verse" class="pill-btn">+ Verse</button>
+            <button type="button" data-struct-add="Chorus" class="pill-btn">+ Chorus</button>
+            <button type="button" data-struct-add="Bridge" class="pill-btn">+ Bridge</button>
+            <button type="button" data-struct-add="Final Chorus" class="pill-btn">+ Final Chorus</button>
+            <button type="button" data-struct-add="Outro" class="pill-btn">+ Outro</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Line to include</label>
+            <input id="briefIncludeLine" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">What to avoid</label>
+            <input id="briefAvoid" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- Generate Lyrics Button -->
+        <button id="generateDraftBtn" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold text-xs shadow-lg shadow-purple-900/40 flex items-center justify-center gap-2 transition cursor-pointer">
+          <span id="generateBtnIcon">✨</span>
+          <span id="generateBtnText">Write Song Lyrics with Gemini</span>
+        </button>
+      </section>
+    </aside>
+
+    <!-- CENTER COLUMN (6 cols): SUNO CUSTOM CREATE + LYRIC CARDS + VOCAL DAW -->
+    <section class="lg:col-span-6 flex flex-col gap-4">
+
+      <!-- Song Header Card -->
+      <div class="section-card p-4 flex flex-col gap-3">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <!-- Cover Art Box -->
+          <div class="flex flex-col items-center gap-1.5">
+            <div id="coverArtPreview" class="w-20 h-20 rounded-xl bg-gradient-to-br from-purple-900/60 via-[#12101c] to-pink-900/50 border border-[#2a2440] flex items-center justify-center overflow-hidden shadow-md">
+              <span id="coverArtPlaceholder" class="text-2xl">🌸</span>
+              <img id="coverArtImg" src="" alt="Cover Art" class="hidden w-full h-full object-cover" />
+            </div>
+            <button id="generateCoverArtBtn" type="button" class="text-xs px-2 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/30 text-purple-200 transition" title="Generate single/EP cover art with Gemini Nano Banana 2.1">
+              🎨 Cover Art
+            </button>
+          </div>
+
+          <!-- Title & Metadata -->
+          <div class="flex-1 min-w-[220px] flex flex-col gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex-1">
+                <label class="block text-xs uppercase tracking-wider text-[#9e96b8] mb-0.5">Active Song Project</label>
+                <input id="songTitleInput" type="text" class="w-full bg-transparent border-b border-[#2a2440] focus:border-purple-400 text-xl font-bold text-white pb-1 focus:outline-none" placeholder="Untitled Song" />
+              </div>
+              <div class="flex items-center gap-1.5">
+                <select id="songStatusSelect" class="bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-purple-200 focus:outline-none">
+                  <option value="Draft">📝 Draft</option>
+                  <option value="Polishing">✂️ Polishing</option>
+                  <option value="Suno Ready">🎛️ Ready to Create</option>
+                  <option value="Recorded">🎧 Track Mixed</option>
+                  <option value="Finalized">🌸 Finalized</option>
+                </select>
+                <button id="saveSnapshotBtn" class="px-2.5 py-1.5 rounded-lg bg-[#0e0c16] hover:bg-purple-500/25 border border-[#2a2440] text-xs text-purple-200 transition" title="Save a version snapshot">
+                  📸 Snapshot
+                </button>
+                <button id="deleteSongBtn" class="px-2 py-1.5 rounded-lg bg-[#0e0c16] hover:bg-rose-500/20 border border-[#2a2440] text-xs text-[#9e96b8] hover:text-rose-200 transition">
+                  🗑️
+                </button>
+              </div>
+            </div>
+
+            <!-- Alternative Titles -->
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs text-[#9e96b8]">Alt Titles:</span>
+              <div id="altTitlesContainer" class="flex flex-wrap items-center gap-1.5"></div>
+              <button id="addAltTitleBtn" class="text-xs text-purple-300 hover:text-purple-100 px-2 py-0.5 rounded border border-dashed border-[#2a2440]">+ Alt</button>
+            </div>
+
+            <!-- BPM, Key, EP/Album & Suno URL -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+              <div>
+                <label class="block text-xs text-[#9e96b8]">BPM</label>
+                <input id="songBpmInput" type="number" min="60" max="180" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-md px-2 py-1 text-xs text-white mono focus:outline-none" value="108" />
+              </div>
+              <div>
+                <label class="block text-xs text-[#9e96b8]">Musical Key</label>
+                <input id="songKeyInput" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-md px-2 py-1 text-xs text-white mono focus:outline-none" value="F# Minor" />
+              </div>
+              <div>
+                <label class="block text-xs text-[#9e96b8]">EP / Release</label>
+                <input id="songEpInput" type="text" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-md px-2 py-1 text-xs text-purple-200 focus:outline-none" value="Porchlight Static EP" />
+              </div>
+              <div>
+                <label class="block text-xs text-[#9e96b8]">External Track URL</label>
+                <input id="songSunoUrlInput" type="url" placeholder="https://..." class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-md px-2 py-1 text-xs text-white focus:outline-none" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-3 py-1.5 rounded-lg bg-purple-950/30 border border-purple-500/25 text-xs text-purple-200 flex items-center justify-between gap-2">
+          <div class="truncate">
+            <span class="font-semibold">💡 Agent Note:</span>
+            <span id="writerNotesText" class="text-[#d8d0f5] ml-1">Read it, cut what doesn't fit, keep what works.</span>
+          </div>
+          <span id="snapshotCountBadge" class="text-xs text-purple-300 whitespace-nowrap mono">0 snapshots</span>
+        </div>
+      </div>
+
+      <!-- STUDIO WORKBENCH NAVIGATION TABS -->
+      <div class="flex flex-wrap items-center justify-between gap-2 px-1">
+        <div class="flex flex-wrap items-center gap-1 bg-[#12101c] p-1 rounded-xl border border-[#2a2440]">
+          <button data-center-view="suno" class="center-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-purple-600/40 to-pink-600/40 text-white border border-pink-400/50 transition">
+            🔥 Create & Track Crate
+          </button>
+          <button data-center-view="cards" class="center-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+            🎛️ Lyric Section Cards
+          </button>
+          <button data-center-view="audio" class="center-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+            🎙️ Vocal Overdub DAW
+          </button>
+          <button data-center-view="hum" class="center-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+            🎶 Hum-to-Synth
+          </button>
+          <button data-center-view="video" class="center-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+            🎬 Lyric Video & LRC
+          </button>
+          <button data-center-view="raw" class="center-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+            📄 Raw Tags
+          </button>
+          <button data-center-view="compare" class="center-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+            ⚖️ A/B Compare
+          </button>
+          <button data-center-view="ep" class="center-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+            💿 EP Planner
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs text-[#9e96b8]">
+          <span id="statsSummary" class="mono"></span>
+          <button id="addSectionBtn" class="px-2.5 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/30 text-purple-200 font-medium transition">
+            + Section
+          </button>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- VIEW 0 (DEFAULT): SUNO-STYLE CUSTOM CREATE + DUAL-TAKE TRACK CRATE  -->
+      <!-- ================================================================== -->
+      <div id="centerViewSuno" class="flex flex-col gap-4">
+
+        <!-- SUNO CUSTOM MODE GENERATOR CONSOLE -->
+        <div class="section-card p-4 flex flex-col gap-3.5 border-pink-500/40 shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#2a2440] pb-2.5">
+            <div class="flex items-center gap-3">
+              <span class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-pink-400/40 text-xs font-bold text-pink-100">
+                🔥 CUSTOM MODE
+              </span>
+              <span class="text-xs text-[#9e96b8]">Generates 2 distinct takes (Take A & Take B) into your Track Crate</span>
+            </div>
+
+            <!-- Instrumental Toggle + Auto-Timed Cues Toggle -->
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-2 text-xs text-gray-200 cursor-pointer">
+                <span class="font-medium">Instrumental</span>
+                <span class="toggle-switch">
+                  <input id="sunoInstrumentalToggle" type="checkbox" />
+                  <span class="toggle-slider"></span>
+                </span>
+              </label>
+
+              <label class="flex items-center gap-2 text-xs text-purple-200 cursor-pointer" title="Automatically include [0:00 - 0:15] section timestamps for Lyria 3.5 structural precision">
+                <span class="font-medium">⏱️ Timed Structure</span>
+                <span class="toggle-switch">
+                  <input id="sunoTimedStructureToggle" type="checkbox" checked />
+                  <span class="toggle-slider"></span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+            <!-- Left 6 cols: Style of Music, Vocal Persona, Negative Tags & Engine -->
+            <div class="md:col-span-6 flex flex-col gap-2.5">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold uppercase tracking-wider text-amber-300">Style of Music</label>
+                  <button id="cycleStylePromptBtn" type="button" class="text-xs text-amber-300 hover:underline">Cycle Agent Suggestions ↻</button>
+                </div>
+                <textarea id="sunoStyleInput" rows="3" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-xl p-2.5 text-xs text-white mono focus:outline-none focus:border-pink-400" placeholder="dream pop, atmospheric synth-pop, warm analog Juno pads, crisp electronic drums, intimate female indie vocals, 108 bpm"></textarea>
+              </div>
+
+              <!-- Quick Sonic Texture Pills -->
+              <div class="flex flex-wrap gap-1">
+                <button type="button" data-style-pill="warm Juno-106 analog pads" class="pill-btn">+ Juno-106 pads</button>
+                <button type="button" data-style-pill="gated reverb 80s snare" class="pill-btn">+ gated snare</button>
+                <button type="button" data-style-pill="intimate breathless female vocal" class="pill-btn">+ breathless vocal</button>
+                <button type="button" data-style-pill="shimmering arpeggiated synth bass" class="pill-btn">+ arp synth bass</button>
+                <button type="button" data-style-pill="soft vocoder harmonies" class="pill-btn">+ vocoder harmony</button>
+                <button type="button" data-style-pill="shoegaze reverb guitar swell" class="pill-btn">+ shoegaze swell</button>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs text-[#9e96b8] mb-1">Exclude Styles (Negative)</label>
+                  <input id="sunoNegativeStyleInput" type="text" value="harsh metal, country twang, stadium EDM" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-gray-300 focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block text-xs text-[#9e96b8] mb-1">Vocal Layer Source</label>
+                  <select id="sunoVocalSourceSelect" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-pink-200 focus:outline-none">
+                    <option value="ai-vocal">AI Synth/Lyria Vocals</option>
+                    <option value="user-stem">Mix My Channel 2 Vocal Stem!</option>
+                    <option value="tts-clone">Gemini 3.8 TTS / My Voice ID</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs text-[#9e96b8] mb-1">Audio Generation Engine</label>
+                <select id="sunoEngineSelect" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-purple-200 focus:outline-none">
+                  <option value="hybrid-auto">⚡ Auto: Lyria 3.5 API + Instant Multi-Section Synth Arrangement (Dual Takes)</option>
+                  <option value="wallflower-synth">🎹 Wallflower Multi-Section Synth-Pop Engine (Instant Full Arrangement — Offline Ready)</option>
+                  <option value="lyria-3.5">🌐 Gemini Lyria 3.5 Full-Length Song (lyria-3.5 API)</option>
+                  <option value="lyria-3-clip-preview">🌐 Gemini Lyria 3 Clip 30s Preview (lyria-3-clip-preview API)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Right 6 cols: Custom Lyrics & Timed Section Arranger Preview -->
+            <div class="md:col-span-6 flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold uppercase tracking-wider text-purple-300">Lyrics & Structure Prompt</label>
+                <button id="injectTimedCuesBtn" type="button" class="text-xs text-purple-300 hover:underline">⏱️ Preview Timed Prompt</button>
+              </div>
+              <textarea id="sunoLyricsPreviewBox" rows="8" class="w-full flex-1 bg-[#0e0c16] border border-[#2a2440] rounded-xl p-2.5 text-xs text-gray-200 mono leading-relaxed focus:outline-none focus:border-purple-400"></textarea>
+            </div>
+          </div>
+
+          <!-- CREATE DUAL TAKES CTA -->
+          <button id="sunoCreateDualTakesBtn" type="button" class="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-amber-500 via-pink-600 to-purple-600 hover:from-amber-400 hover:via-pink-500 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-pink-950/50 flex items-center justify-center gap-2.5 transition cursor-pointer">
+            <span class="text-base">🔥</span>
+            <span id="sunoCreateBtnText">Create Song (Generate Take A & Take B)</span>
+          </button>
+        </div>
+
+        <!-- THE TRACK CRATE (SUNO-STYLE GENERATED TRACKS FEED) -->
+        <div class="section-card p-4 flex flex-col gap-3">
+          <div class="flex items-center justify-between border-b border-[#2a2440] pb-2">
+            <div class="flex items-center gap-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-pink-300">💿 Track Crate (Generated Songs & Mixdowns)</h3>
+              <span id="trackCrateCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-[#0e0c16] text-pink-200 border border-[#2a2440] mono">0</span>
+            </div>
+            <span class="text-xs text-[#9e96b8]">Click ▶️ Play on any take to launch the Bottom Visualizer & Karaoke Deck</span>
+          </div>
+
+          <div id="trackCrateContainer" class="grid grid-cols-1 gap-2.5">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- VIEW 1: STRUCTURED SECTION CARDS + ENERGY ARC + METATAG PALETTE     -->
+      <!-- ================================================================== -->
+      <div id="centerViewCards" class="hidden flex flex-col gap-3.5">
+
+        <!-- Visual Song Energy & Dynamic Arc Curve -->
+        <div class="section-card p-3.5 flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-purple-300">📈 Song Energy & Dynamic Arc</span>
+            <span class="text-xs text-[#9e96b8]">Adjust section energy (1–10) on any card below</span>
+          </div>
+          <div id="energyArcSvgContainer" class="w-full h-20 bg-[#0e0c16] rounded-xl border border-[#2a2440] p-2 flex items-center justify-center"></div>
+        </div>
+
+        <!-- Suno / Lyria Vocal & Arrangement Metatag Palette -->
+        <div class="section-card p-3 flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-pink-300">🎙️ Suno & Lyria Performance Metatags</span>
+            <span class="text-xs text-[#9e96b8]">Click to insert into active section</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-insert-metatag="[Whispered Vocals]" class="pill-btn">[Whispered Vocals]</button>
+            <button type="button" data-insert-metatag="[Breathless Delivery]" class="pill-btn">[Breathless Delivery]</button>
+            <button type="button" data-insert-metatag="[Vocoder Harmony]" class="pill-btn">[Vocoder Harmony]</button>
+            <button type="button" data-insert-metatag="[Arpeggiated Synth Drop]" class="pill-btn">[Arpeggiated Synth Drop]</button>
+            <button type="button" data-insert-metatag="[Gated Reverb Drums]" class="pill-btn">[Gated Reverb Drums]</button>
+            <button type="button" data-insert-metatag="[Half-Time Bridge]" class="pill-btn">[Half-Time Bridge]</button>
+            <button type="button" data-insert-metatag="[Instrumental Synth Solo]" class="pill-btn">[Instrumental Synth Solo]</button>
+            <button type="button" data-insert-metatag="[Shimmering Outro Fade]" class="pill-btn">[Shimmering Outro Fade]</button>
+          </div>
+        </div>
+
+        <!-- Section Cards Container -->
+        <div id="sectionsCardsView" class="flex flex-col gap-3.5"></div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- VIEW 2: VOCAL OVERDUB & MULTI-TRACK STEM DAW                        -->
+      <!-- ================================================================== -->
+      <div id="centerViewAudio" class="hidden flex flex-col gap-4">
+
+        <!-- Live Lyric Teleprompter Box for Recording Vocals -->
+        <div class="section-card p-4 flex flex-col gap-2 bg-gradient-to-b from-[#181526] to-[#110e1c] border-purple-500/40">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300">🎤 Vocal Booth Lyric Teleprompter</span>
+            <span class="text-xs text-[#9e96b8]">Sing or speak along while recording your mic take</span>
+          </div>
+          <div id="vocalTeleprompterBox" class="p-3 rounded-xl bg-[#09080f] border border-[#2a2440] max-h-40 overflow-y-auto text-sm text-purple-100 mono leading-relaxed whitespace-pre-wrap"></div>
+        </div>
+
+        <!-- Channel 1: Backing Track -->
+        <div class="section-card p-4 flex flex-col gap-3 border-purple-500/40">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#2a2440] pb-2">
+            <div>
+              <h3 class="text-sm font-bold text-white">🎹 Channel 1: Instrumental / Backing Stem</h3>
+              <p class="text-xs text-[#9e96b8]">Generate a full multi-section arrangement, call Lyria 3.5, or load any instrumental file</p>
+            </div>
+            <span id="backingTrackStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30 mono">Ready</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <select id="lyriaModelSelect" class="bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+              <option value="lyria-3-clip-preview">lyria-3-clip-preview (30s Preview Clip)</option>
+              <option value="lyria-3.5">lyria-3.5 (Full-Length Song)</option>
+            </select>
+            <select id="lyriaModeSelect" class="bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+              <option value="instrumental">Instrumental Backing Track Only (for your vocals)</option>
+              <option value="full">Full Track with AI Vocals</option>
+            </select>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="generateWebAudioSynthBtn" type="button" class="flex-1 py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-semibold text-white shadow-lg transition cursor-pointer">
+              🎹 Synthesize Full Multi-Section Arrangement (Verse/Chorus/Bridge)
+            </button>
+            <button id="generateLyriaTrackBtn" type="button" class="py-2.5 px-3.5 rounded-xl bg-pink-600/30 hover:bg-pink-600/45 border border-pink-400/40 text-xs font-semibold text-pink-100 transition cursor-pointer">
+              🎵 <span id="generateLyriaBtnText">Generate via Lyria API</span>
+            </button>
+            <label for="importBackingFileInput" class="py-2.5 px-3 rounded-xl bg-[#0e0c16] hover:bg-[#211c34] border border-[#2a2440] text-xs font-medium text-gray-200 cursor-pointer transition">
+              📂 Load File
+            </label>
+            <input id="importBackingFileInput" type="file" accept="audio/*" class="hidden" />
+          </div>
+
+          <div class="p-3 rounded-xl bg-[#0e0c16] border border-[#2a2440] flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs">
+              <span id="backingTrackTitleLabel" class="font-semibold text-purple-200">No backing track loaded yet</span>
+              <label class="flex items-center gap-1.5">
+                <span class="text-[#9e96b8]">Backing Vol:</span>
+                <input id="backingVolumeSlider" type="range" min="0" max="150" value="85" class="w-24 accent-purple-500" />
+                <span id="backingVolumeVal" class="mono text-white w-9">85%</span>
+              </label>
+            </div>
+            <audio id="backingAudioPlayer" controls class="w-full h-8"></audio>
+          </div>
+        </div>
+
+        <!-- Channel 2: User's Own Vocals + Doubler + Reverb/Delay -->
+        <div class="section-card p-4 flex flex-col gap-3 border-pink-500/40">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#2a2440] pb-2">
+            <div>
+              <h3 class="text-sm font-bold text-white">🎙️ Channel 2: Your Vocals (Import from Another Source, Record Mic, or Voice Clone)</h3>
+              <p class="text-xs text-[#9e96b8]">Drop in a vocal stem from a DAW/phone memo/external tool, record live, or synthesize your replicated voice</p>
+            </div>
+            <span id="vocalStemStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-pink-500/20 text-pink-200 border border-pink-400/30 mono">No Vocal Loaded</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <label for="importVocalFileInput" class="p-3 rounded-xl bg-[#0e0c16] hover:bg-pink-500/15 border border-pink-400/40 flex flex-col items-center justify-center gap-1 text-center cursor-pointer transition">
+              <span class="text-lg">📥</span>
+              <span class="text-xs font-semibold text-pink-200">Import Vocal File</span>
+              <span class="text-xs text-[#9e96b8]">WAV, MP3, M4A, FLAC from another source</span>
+            </label>
+            <input id="importVocalFileInput" type="file" accept="audio/*" class="hidden" />
+
+            <button id="recordMicVocalBtn" type="button" class="p-3 rounded-xl bg-[#0e0c16] hover:bg-rose-500/20 border border-rose-400/40 flex flex-col items-center justify-center gap-1 text-center cursor-pointer transition">
+              <span id="recordMicIcon" class="text-lg">🔴</span>
+              <span id="recordMicText" class="text-xs font-semibold text-rose-200">Record Live Mic Vocal</span>
+              <span class="text-xs text-[#9e96b8]">Plays backing track while recording</span>
+            </button>
+
+            <button id="generateTtsVocalStemBtn" type="button" class="p-3 rounded-xl bg-[#0e0c16] hover:bg-amber-500/20 border border-amber-400/40 flex flex-col items-center justify-center gap-1 text-center cursor-pointer transition">
+              <span class="text-lg">🗣️</span>
+              <span class="text-xs font-semibold text-amber-200">Gemini TTS / Voice Clone</span>
+              <span class="text-xs text-[#9e96b8]">Synthesize vocal stem into Channel 2</span>
+            </button>
+          </div>
+
+          <!-- Vocal FX Rack -->
+          <div class="p-3 rounded-xl bg-[#0e0c16] border border-[#2a2440] flex flex-col gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span id="vocalTrackTitleLabel" class="font-semibold text-pink-200">Load or record a vocal stem above</span>
+              <label class="flex items-center gap-2 text-purple-200 cursor-pointer">
+                <span>✨ Dream-Pop Stereo Vocal Doubler</span>
+                <input id="vocalDoublerCheckbox" type="checkbox" checked class="accent-pink-500" />
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+              <label class="flex flex-col gap-1">
+                <div class="flex justify-between"><span class="text-[#9e96b8]">Vocal Volume</span><span id="vocalVolumeVal" class="mono text-white">105%</span></div>
+                <input id="vocalVolumeSlider" type="range" min="0" max="150" value="105" class="accent-pink-500" />
+              </label>
+
+              <label class="flex flex-col gap-1">
+                <div class="flex justify-between"><span class="text-[#9e96b8]">Start Offset</span><span id="vocalOffsetVal" class="mono text-white">0.0s</span></div>
+                <input id="vocalOffsetSlider" type="range" min="-5" max="15" step="0.1" value="0" class="accent-pink-500" />
+              </label>
+
+              <label class="flex flex-col gap-1">
+                <div class="flex justify-between"><span class="text-[#9e96b8]">Lush Reverb</span><span id="vocalReverbVal" class="mono text-purple-200">38%</span></div>
+                <input id="vocalReverbSlider" type="range" min="0" max="100" value="38" class="accent-purple-500" />
+              </label>
+
+              <label class="flex flex-col gap-1">
+                <div class="flex justify-between"><span class="text-[#9e96b8]">Tape Delay</span><span id="vocalDelayVal" class="mono text-amber-200">22%</span></div>
+                <input id="vocalDelaySlider" type="range" min="0" max="100" value="22" class="accent-amber-500" />
+              </label>
+            </div>
+
+            <audio id="vocalAudioPlayer" controls class="w-full h-8"></audio>
+          </div>
+        </div>
+
+        <!-- Master Mixdown & Send to Track Crate -->
+        <div class="section-card p-4 flex flex-col gap-3 bg-gradient-to-r from-[#181526] to-[#221936] border-emerald-500/40">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="text-sm font-bold text-white">🎛️ Master Mixdown (Backing + Your Vocals)</h3>
+              <p class="text-xs text-[#9e96b8]">Bounce your combined stems into the Track Crate & download a 44.1 kHz stereo `.WAV` master</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="playBothStemsBtn" type="button" class="px-3.5 py-2 rounded-xl bg-emerald-500/25 hover:bg-emerald-500/40 border border-emerald-400/50 text-xs font-bold text-emerald-100 transition cursor-pointer">
+                ▶️ Audition Mix
+              </button>
+              <button id="stopBothStemsBtn" type="button" class="px-3 py-2 rounded-xl bg-[#0e0c16] hover:bg-rose-500/25 border border-[#2a2440] text-xs font-semibold text-gray-200 transition cursor-pointer">
+                ⏹️ Stop
+              </button>
+              <button id="bounceCombinedWavBtn" type="button" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-xs font-bold text-white shadow-lg transition cursor-pointer">
+                💾 Bounce Master (.WAV) & Add to Crate
+              </button>
+            </div>
+          </div>
+          <div id="masterMixdownPreviewBox" class="hidden p-3 rounded-xl bg-[#0e0c16] border border-emerald-500/40 flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-emerald-300">✨ Master Mixdown Ready:</span>
+            <audio id="masterMixAudioPlayer" controls class="w-full h-8"></audio>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- VIEW 3: RAW SUNO TAG EDITOR                                        -->
+      <!-- ================================================================== -->
+      <div id="centerViewRaw" class="hidden section-card p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-purple-300">Raw Tag Editor</h3>
+            <p class="text-xs text-[#9e96b8]">Edit full lyrics with [Verse], [Chorus], [Bridge] tags.</p>
+          </div>
+          <button id="syncRawToCardsBtn" class="px-3 py-1 rounded-lg bg-purple-600/30 border border-purple-400/40 text-xs text-purple-100 hover:bg-purple-600/50">
+            Apply Raw Edits
+          </button>
+        </div>
+        <textarea id="rawSunoTextarea" rows="20" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-xl p-4 text-sm text-white mono leading-relaxed focus:outline-none focus:border-purple-400"></textarea>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- VIEW 4: SIDE-BY-SIDE A/B VERSION SNAPSHOT COMPARE                  -->
+      <!-- ================================================================== -->
+      <div id="centerViewCompare" class="hidden section-card p-4 flex flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#2a2440] pb-2.5">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-purple-300">⚖️ Side-by-Side Version Snapshot Compare</h3>
+            <p class="text-xs text-[#9e96b8]">Compare an earlier snapshot with your current draft, or restore it</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="snapshotSelect" class="bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"></select>
+            <button id="restoreSnapshotBtn" class="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/40 text-xs font-semibold text-amber-100">
+              ⏪ Restore Snapshot
+            </button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-[#0e0c16] border border-[#2a2440]">
+            <div class="text-xs font-semibold text-amber-300 mb-2">Snapshot Version (A)</div>
+            <pre id="compareSnapshotText" class="text-xs text-gray-300 mono whitespace-pre-wrap leading-relaxed max-h-[420px] overflow-y-auto"></pre>
+          </div>
+          <div class="p-3 rounded-xl bg-[#0e0c16] border border-purple-500/40">
+            <div class="text-xs font-semibold text-purple-300 mb-2">Current Live Draft (B)</div>
+            <pre id="compareCurrentText" class="text-xs text-white mono whitespace-pre-wrap leading-relaxed max-h-[420px] overflow-y-auto"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- VIEW 5: EP / ALBUM RELEASE PLANNER                                 -->
+      <!-- ================================================================== -->
+      <div id="centerViewEp" class="hidden section-card p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-[#2a2440] pb-2.5">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-purple-300">💿 EP & Album Release Planner</h3>
+            <p class="text-xs text-[#9e96b8]">Track sonic cohesion, BPM & Key flow, and status across your virtual wallflower releases</p>
+          </div>
+          <button data-export="ep-md" class="px-3 py-1.5 rounded-lg bg-purple-600/30 border border-purple-400/40 text-xs font-semibold text-purple-100">
+            ⬇️ Export EP Booklet (.md)
+          </button>
+        </div>
+        <div id="epPlannerContainer" class="flex flex-col gap-3"></div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- VIEW 6: HUM-TO-SYNTH HOOK CONVERTER & 16-STEP PIANO ROLL + MIDI    -->
+      <!-- ================================================================== -->
+      <div id="centerViewHum" class="hidden flex flex-col gap-4">
+        <div class="section-card p-4 flex flex-col gap-3.5 border-purple-500/40 shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#2a2440] pb-2.5">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>🎶 Hum-to-Synth Hook Converter & Step Sequencer</span>
+                <span id="humKeyScaleBadge" class="px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-200 border border-purple-400/30 mono">F# Minor Scale</span>
+              </h3>
+              <p class="text-xs text-[#9e96b8]">Hum a melody into your mic, upload a voice memo, or click notes on the 16-step grid to synthesize a shimmering dream-pop synth hook & export MIDI</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="humRandomMelodyBtn" type="button" class="px-3 py-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/30 text-xs font-semibold text-purple-200 transition cursor-pointer">
+                🎲 Dream-Pop Hook Generator
+              </button>
+              <button id="humClearGridBtn" type="button" class="px-2.5 py-1.5 rounded-lg bg-[#0e0c16] hover:bg-rose-500/20 border border-[#2a2440] text-xs text-gray-300 transition cursor-pointer">
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Row: Mic Pitch Capture + Upload + Synth Patch Settings -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+            <!-- Left 6 cols: Capture & Pitch Trace -->
+            <div class="md:col-span-6 p-3.5 rounded-xl bg-[#0e0c16] border border-[#2a2440] flex flex-col gap-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-pink-300">1. Capture or Extract Melody</span>
+                <span id="humDetectedNoteBadge" class="text-xs font-bold text-emerald-300 mono">Ready to listen</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <button id="humRecordBtn" type="button" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-rose-600/30 to-pink-600/30 hover:from-rose-600/45 hover:to-pink-600/45 border border-rose-400/50 text-xs font-bold text-rose-100 flex items-center justify-center gap-1.5 transition cursor-pointer">
+                  <span id="humRecordIcon">🎙️</span>
+                  <span id="humRecordText">Hum 4 Bars into Mic</span>
+                </button>
+                <label class="py-2.5 px-3 rounded-xl bg-[#161324] hover:bg-purple-500/20 border border-dashed border-purple-400/40 text-xs font-semibold text-purple-200 flex items-center justify-center gap-1.5 cursor-pointer transition">
+                  <span>📂 Hum Audio File</span>
+                  <input id="humFileInput" type="file" accept="audio/*" class="hidden" />
+                </label>
+              </div>
+
+              <!-- Live Pitch Trace Canvas -->
+              <div class="relative rounded-lg overflow-hidden bg-[#09080f] border border-[#2a2440] h-24">
+                <canvas id="humPitchCanvas" width="460" height="96" class="w-full h-full block"></canvas>
+                <div class="absolute top-1.5 left-2 text-[10px] text-[#9e96b8] mono pointer-events-none">LIVE PITCH CONTOUR → SCALE QUANTIZER</div>
+              </div>
+            </div>
+
+            <!-- Right 6 cols: Synth Patch & Expression Controls -->
+            <div class="md:col-span-6 p-3.5 rounded-xl bg-[#0e0c16] border border-[#2a2440] flex flex-col gap-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-purple-300">2. Synth Patch & Expression</span>
+                <label class="flex items-center gap-1.5 text-xs text-emerald-300 cursor-pointer">
+                  <input id="humQuantizeToggle" type="checkbox" checked class="accent-emerald-500" />
+                  <span>Snap to Song Key</span>
+                </label>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs text-[#9e96b8] mb-1">Synth Patch</label>
+                  <select id="humSynthPatchSelect" class="w-full bg-[#161324] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                    <option value="juno-lead">✨ Juno-106 Chorus Lead</option>
+                    <option value="glass-arp">🔔 Glass Bell Shimmer Pluck</option>
+                    <option value="darkwave-bass">🌊 Darkwave Sub-Lead</option>
+                    <option value="cocteau-pad">🌸 Cocteau Ethereal Choir-Synth</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs text-[#9e96b8] mb-1">Octave Register</label>
+                  <select id="humOctaveSelect" class="w-full bg-[#161324] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-white mono focus:outline-none">
+                    <option value="-1">-1 Octave (Warm Low)</option>
+                    <option value="0" selected>0 Center (Lead Register)</option>
+                    <option value="1">+1 Octave (High Shimmer)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <div class="flex justify-between text-xs text-[#9e96b8] mb-0.5">
+                    <span>Stereo Chorus & Delay</span>
+                    <span id="humShimmerVal" class="mono text-purple-200">65%</span>
+                  </div>
+                  <input id="humShimmerSlider" type="range" min="0" max="100" value="65" class="w-full accent-purple-500" />
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs text-[#9e96b8] mb-0.5">
+                    <span>Note Gate / Sustain</span>
+                    <span id="humGateVal" class="mono text-pink-200">80%</span>
+                  </div>
+                  <input id="humGateSlider" type="range" min="25" max="100" value="80" class="w-full accent-pink-500" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 16-Step Interactive Scale Piano Roll Grid -->
+          <div class="p-3.5 rounded-xl bg-[#0e0c16] border border-[#2a2440] flex flex-col gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-amber-300">3. 16-Step Melody Sequencer (Click Steps to Edit Notes)</span>
+              <span class="text-xs text-[#9e96b8] mono">1 Bar = 16 Steps @ Song BPM</span>
+            </div>
+            <div id="humPianoRollGrid" class="flex flex-col gap-1 overflow-x-auto pb-1"></div>
+          </div>
+
+          <!-- Action Bar: Audition, Layer into Vocal DAW / Crate, Export WAV & Export MIDI -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="humPlayHookBtn" type="button" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-xs font-bold text-white shadow-lg transition cursor-pointer">
+                ▶️ Audition Synth Hook
+              </button>
+              <button id="humLayerToCrateBtn" type="button" class="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/40 text-xs font-semibold text-emerald-200 transition cursor-pointer">
+                💿 Layer Hook Over Backing & Add to Crate
+              </button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="humDownloadWavBtn" type="button" class="px-3 py-2 rounded-xl bg-[#161324] hover:bg-purple-500/25 border border-[#2a2440] text-xs font-semibold text-purple-200 transition cursor-pointer">
+                ⬇️ Hook (.WAV)
+              </button>
+              <button id="humDownloadMidiBtn" type="button" class="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/40 text-xs font-bold text-amber-200 transition cursor-pointer">
+                🎹 Export MIDI (.MID)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- VIEW 7: LYRIC VIDEO RECORDER (TIKTOK/REELS/YT) & .LRC EXPORTER     -->
+      <!-- ================================================================== -->
+      <div id="centerViewVideo" class="hidden flex flex-col gap-4">
+        <div class="section-card p-4 flex flex-col gap-4 border-pink-500/40 shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#2a2440] pb-2.5">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>🎬 Lyric Video & Visualizer Recorder + Synced .LRC Studio</span>
+                <span class="px-2 py-0.5 rounded-full text-xs bg-pink-500/20 text-pink-200 border border-pink-400/30">TikTok / Reels / Spotify</span>
+              </h3>
+              <p class="text-xs text-[#9e96b8]">Render an animated frequency visualizer + synced karaoke lyric video with your audio baked in, or export timestamped .LRC files</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="videoAspectSelect" class="bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                <option value="9:16">📱 9:16 Vertical (TikTok / Reels / Shorts)</option>
+                <option value="1:1">🖼️ 1:1 Square (Album Canvas / Feed)</option>
+                <option value="16:9">🖥️ 16:9 Widescreen (YouTube Lyric Video)</option>
+              </select>
+              <select id="videoThemeSelect" class="bg-[#0e0c16] border border-[#2a2440] rounded-lg px-2.5 py-1.5 text-xs text-purple-200 focus:outline-none">
+                <option value="porchlight">🌙 Midnight Porchlight (Indigo + Dust)</option>
+                <option value="neon">🌸 Neon Wallflower (Radial Spectrum + Vinyl)</option>
+                <option value="vhs">📼 1986 VHS Dream (CRT Scanlines + Timecode)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+            <!-- Left 7 cols: Live Interactive Video Canvas Stage -->
+            <div class="md:col-span-7 flex flex-col items-center gap-3 p-3 rounded-xl bg-[#09080f] border border-[#2a2440]">
+              <div class="w-full flex items-center justify-between text-xs text-[#9e96b8] px-1">
+                <span id="videoStageStatusLabel" class="mono text-purple-200">● LIVE CANVAS STAGE</span>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input id="videoCrtToggle" type="checkbox" checked class="accent-pink-500" />
+                  <span>VHS Scanlines & Dust</span>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-center w-full overflow-hidden py-1">
+                <canvas id="lyricVideoCanvas" width="540" height="960" class="rounded-xl border border-purple-500/40 shadow-2xl max-h-[440px] w-auto bg-[#09080f]"></canvas>
+              </div>
+
+              <!-- Preview & Video Record Controls -->
+              <div class="w-full flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#2a2440]">
+                <div class="flex items-center gap-2">
+                  <button id="videoPreviewPlayBtn" type="button" class="px-3.5 py-2 rounded-xl bg-purple-600/35 hover:bg-purple-600/50 border border-purple-400/50 text-xs font-bold text-white transition cursor-pointer">
+                    ▶️ Preview Video + Audio
+                  </button>
+                  <button id="videoRecordExportBtn" type="button" class="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-xs font-bold text-white shadow-lg flex items-center gap-1.5 transition cursor-pointer">
+                    <span id="videoRecordBtnIcon">🔴</span>
+                    <span id="videoRecordBtnText">Record 15s Clip (.WEBM)</span>
+                  </button>
+                </div>
+                <select id="videoRecordDurationSelect" class="bg-[#12101c] border border-[#2a2440] rounded-lg px-2 py-1.5 text-xs text-gray-200 mono focus:outline-none">
+                  <option value="15">15s TikTok Teaser</option>
+                  <option value="30">30s Chorus Reel</option>
+                  <option value="full">Full Track Duration</option>
+                </select>
+              </div>
+
+              <div id="recordedVideoDownloadBox" class="hidden w-full p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/40 flex items-center justify-between gap-2">
+                <span class="text-xs text-emerald-200 font-semibold">✨ Video Render Complete!</span>
+                <a id="recordedVideoDownloadLink" href="#" download="virtual-wallflower-lyric-video.webm" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white">
+                  ⬇️ Download Video File
+                </a>
+              </div>
+            </div>
+
+            <!-- Right 5 cols: Synced .LRC Timestamp Editor & Exporter -->
+            <div class="md:col-span-5 flex flex-col gap-3 p-3.5 rounded-xl bg-[#0e0c16] border border-[#2a2440]">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-300">⏱️ Synced .LRC Lyric File</h4>
+                  <p class="text-[11px] text-[#9e96b8]">For Spotify, Apple Music, DistroKid & Karaoke</p>
+                </div>
+                <button id="regenerateLrcBtn" type="button" class="px-2.5 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/30 text-xs text-purple-200 transition cursor-pointer">
+                  🔄 Auto-Sync BPM
+                </button>
+              </div>
+
+              <button id="tapSyncNextLineBtn" type="button" class="w-full py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/40 text-xs font-bold text-amber-100 transition cursor-pointer">
+                👆 Tap Here on Each Lyric Line While Playing to Live-Stamp Timecode
+              </button>
+
+              <textarea id="lrcOutputTextarea" rows="14" class="w-full bg-[#09080f] border border-[#2a2440] rounded-xl p-3 text-xs text-emerald-200 mono leading-relaxed focus:outline-none focus:border-emerald-400"></textarea>
+
+              <div class="grid grid-cols-2 gap-2">
+                <button id="copyLrcBtn" type="button" class="py-2 px-3 rounded-xl bg-[#161324] hover:bg-purple-500/25 border border-[#2a2440] text-xs font-semibold text-purple-200 transition cursor-pointer">
+                  📋 Copy .LRC
+                </button>
+                <button id="downloadLrcBtn" type="button" class="py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-xs font-bold text-white shadow-md transition cursor-pointer">
+                  ⬇️ Download .LRC
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. ALTERNATIVE CHORUS LINES TO SWAP IN -->
+      <div class="section-card p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-pink-300">Alternative Chorus Hooks to Swap In</h3>
+            <p class="text-xs text-[#9e96b8]">One-click swap into your `[Chorus]` sections</p>
+          </div>
+          <button id="addAltChorusBtn" class="text-xs text-pink-300 hover:text-pink-200 px-2.5 py-1 rounded-lg bg-pink-500/10 border border-pink-400/30">
+            + Add Hook
+          </button>
+        </div>
+        <div id="altChorusContainer" class="flex flex-col gap-2"></div>
+      </div>
+
+      <!-- 4. STYLE-PROMPT SUGGESTIONS -->
+      <div class="section-card p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-300">Agent Style-Prompt Suggestions</h3>
+            <p class="text-xs text-[#9e96b8]">Click "Use in Create" to load into the Custom Mode Song Generator</p>
+          </div>
+          <button id="addSunoPromptBtn" class="text-xs text-amber-300 hover:text-amber-200 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-400/30">
+            + Add Style
+          </button>
+        </div>
+        <div id="sunoPromptsContainer" class="grid grid-cols-1 gap-2.5"></div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN (3 cols): CO-WRITER CHAT + RHYME LAB + CLICHÉ & FINALIZE -->
+    <aside class="lg:col-span-3 flex flex-col gap-4">
+
+      <div class="section-card p-1.5 grid grid-cols-3 gap-1">
+        <button data-right-tab="chat" class="right-tab-btn py-2 px-2 rounded-lg text-xs font-semibold bg-purple-600/30 text-white border border-purple-400/40 transition">
+          💬 Co-Writer
+        </button>
+        <button data-right-tab="rhyme" class="right-tab-btn py-2 px-2 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+          🎵 Rhyme Lab
+        </button>
+        <button data-right-tab="finalize" class="right-tab-btn py-2 px-2 rounded-lg text-xs font-semibold text-[#9e96b8] hover:text-white transition">
+          ✅ Finalize
+        </button>
+      </div>
+
+      <!-- TAB 1: CO-WRITER CHAT -->
+      <section id="rightTabChat" class="section-card p-4 flex flex-col gap-3 flex-1 min-h-[540px]">
+        <div class="flex items-center justify-between border-b border-[#2a2440] pb-2.5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-purple-300">AI Co-Writer Chat</h2>
+            <p class="text-xs text-[#9e96b8]">Stateful Gemini Interactions session</p>
+          </div>
+          <button id="resetChatBtn" class="text-xs text-[#9e96b8] hover:text-white px-2 py-1 rounded bg-[#0e0c16] border border-[#2a2440]">
+            Reset Context
+          </button>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" data-chat-quick="Give me 4 fresh metaphors for this theme that feel honest, nocturnal, and midwestern." class="pill-btn">✨ 4 metaphors</button>
+          <button type="button" data-chat-quick="Write 3 alternative bridge ideas that shift the perspective before the Final Chorus." class="pill-btn">🌉 3 bridges</button>
+          <button type="button" data-chat-quick="Check my current lyrics for any cliché filler or lines that have too many syllables to sing smoothly." class="pill-btn">🔍 Audit singability</button>
+          <button type="button" data-chat-quick="Write a timestamped Lyria 3.5 arrangement prompt ([0:00 - 0:15] Intro, etc.) for this song." class="pill-btn">⏱️ Timed Cue Sheet</button>
+        </div>
+
+        <div id="chatMessagesContainer" class="flex-1 flex flex-col gap-2.5 overflow-y-auto max-h-[380px] pr-1 py-1"></div>
+
+        <div class="flex flex-col gap-2 pt-2 border-t border-[#2a2440]">
+          <textarea id="chatInput" rows="2" placeholder="Ask the Lyrics Agent to rework a line, brainstorm imagery, or suggest synth textures..." class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-2 text-xs text-white placeholder-[#6b6385] focus:outline-none focus:border-purple-400"></textarea>
+          <button id="sendChatBtn" class="w-full py-2 rounded-lg bg-purple-600/35 hover:bg-purple-600/50 border border-purple-400/40 text-xs font-semibold text-white transition">
+            Send to Lyrics Agent ↵
+          </button>
+        </div>
+      </section>
+
+      <!-- TAB 2: RHYME & NEAR-RHYME HELPER -->
+      <section id="rightTabRhyme" class="hidden section-card p-4 flex flex-col gap-3.5 flex-1">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-pink-300">Rhyme & Near-Rhyme Helper</h2>
+          <p class="text-xs text-[#9e96b8]">Click any line's ♪ word in the editor or search below</p>
+        </div>
+
+        <div class="flex gap-1.5">
+          <input id="rhymeSearchInput" type="text" placeholder="Type a word (e.g. static, night, warm)..." class="flex-1 bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-pink-400" />
+          <button id="rhymeSearchBtn" class="px-3 py-1.5 rounded-lg bg-pink-500/25 hover:bg-pink-500/40 border border-pink-400/40 text-xs font-semibold text-pink-100">
+            Find
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <div>
+            <div class="text-xs font-semibold text-gray-300 mb-1.5">Near / Slant Rhymes & Echoes</div>
+            <div id="nearRhymesList" class="flex flex-wrap gap-1.5 text-xs text-[#9e96b8]"></div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-300 mb-1.5">Exact Rhymes</div>
+            <div id="exactRhymesList" class="flex flex-wrap gap-1.5 text-xs text-[#9e96b8]"></div>
+          </div>
+        </div>
+
+        <hr class="border-[#2a2440]" />
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-semibold uppercase tracking-wider text-purple-300">Virtual Wallflower Palette</span>
+            <span class="text-xs text-[#9e96b8]">Click to copy/explore</span>
+          </div>
+          <div id="sensoryPaletteContainer" class="flex flex-wrap gap-1.5"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: FINALIZE & CLICHÉ DETECTOR -->
+      <section id="rightTabFinalize" class="hidden section-card p-4 flex flex-col gap-3.5 flex-1">
+        <div>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Human Finalize & Cliché Audit</h2>
+          <p class="text-xs text-[#9e96b8]">"Read it, cut what doesn't fit, keep what works."</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-[#0e0c16] border border-[#2a2440] flex flex-col gap-2">
+          <div class="text-xs font-semibold text-white">Singability & Meter Check</div>
+          <div id="singabilityDiagnostics" class="flex flex-col gap-1.5 text-xs text-[#9e96b8]"></div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-[#0e0c16] border border-[#2a2440] flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-amber-300">🚨 Cliché & Filler Detector</span>
+            <span id="clicheCountBadge" class="text-xs mono text-emerald-300">0 found</span>
+          </div>
+          <div id="clicheListContainer" class="text-xs text-[#9e96b8] flex flex-col gap-1.5"></div>
+        </div>
+
+        <button id="cleanCutLinesBtn" class="w-full py-2 px-3 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 border border-rose-400/30 text-xs font-medium text-rose-200 transition">
+          ✂️ Permanently Remove Strikethrough ("Cut") Lines
+        </button>
+      </section>
+
+    </aside>
+  </main>
+
+  <!-- ==================================================================== -->
+  <!-- PERSISTENT BOTTOM NOW-PLAYING DECK + SPECTRUM VISUALIZER + KARAOKE   -->
+  <!-- ==================================================================== -->
+  <footer class="no-print fixed bottom-0 inset-x-0 z-40 h-20 bg-[#0d0b16]/95 backdrop-blur-xl border-t border-purple-500/30 px-5 flex items-center justify-between gap-4 shadow-2xl">
+    <!-- Left: Spinning Cover Art & Now Playing Info -->
+    <div class="flex items-center gap-3 min-w-[210px] max-w-[280px]">
+      <div id="deckDiscBox" class="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 via-pink-500 to-amber-400 p-0.5 flex items-center justify-center shadow-lg">
+        <div class="w-full h-full rounded-full bg-[#12101c] flex items-center justify-center overflow-hidden">
+          <span id="deckCoverEmoji" class="text-base">🌸</span>
+          <img id="deckCoverImg" src="" alt="" class="hidden w-full h-full object-cover" />
+        </div>
+      </div>
+      <div class="truncate">
+        <div id="deckTrackTitle" class="text-xs font-bold text-white truncate">Porchlight on the Static (Take A)</div>
+        <div id="deckTrackSubtitle" class="text-xs text-pink-300 truncate">virtual wallflower • 108 BPM • F# Minor</div>
+      </div>
+    </div>
+
+    <!-- Center: Transport Controls + Live Frequency Visualizer + Karaoke Line -->
+    <div class="flex-1 flex flex-col items-center gap-1 max-w-2xl">
+      <div class="w-full flex items-center gap-3">
+        <button id="deckPlayPauseBtn" type="button" class="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-bold text-xs flex items-center justify-center shadow-md cursor-pointer">
+          ▶
+        </button>
+        <span id="deckCurrentTime" class="text-xs mono text-[#9e96b8] w-10 text-right">0:00</span>
+        <input id="deckScrubber" type="range" min="0" max="100" value="0" class="flex-1 accent-pink-500 h-1.5 cursor-pointer" />
+        <span id="deckDuration" class="text-xs mono text-[#9e96b8] w-10">0:00</span>
+        <canvas id="bottomVisualizerCanvas" width="150" height="28" class="rounded bg-[#09080f] border border-[#2a2440] hidden sm:block"></canvas>
+      </div>
+      <div id="deckKaraokeLine" class="text-xs text-purple-200 mono truncate max-w-xl">
+        ♪ Click 🔥 Create Song or ▶️ Play on any track in the Crate to audition
+      </div>
+    </div>
+
+    <!-- Right: Send to Vocal Overdub Studio & Download -->
+    <div class="flex items-center gap-2">
+      <button id="deckOverdubBtn" type="button" class="px-3 py-1.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/35 border border-pink-400/40 text-xs font-semibold text-pink-100 whitespace-nowrap transition cursor-pointer" title="Load this track as Channel 1 in the Vocal Overdub Studio so you can layer your own vocals!">
+        🎙️ Layer My Vocals
+      </button>
+      <a id="deckDownloadLink" href="#" download="virtual-wallflower-track.wav" class="px-3 py-1.5 rounded-lg bg-[#181526] hover:bg-[#241f38] border border-[#2a2440] text-xs font-medium text-gray-200 whitespace-nowrap transition">
+        ⬇️ WAV
+      </a>
+    </div>
+
+    <!-- Hidden Master Deck Audio Element -->
+    <audio id="deckMasterAudio" crossorigin="anonymous" class="hidden"></audio>
+  </footer>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settingsModal" class="no-print hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="section-card max-w-2xl w-full p-6 flex flex-col gap-4 shadow-2xl border border-purple-500/40 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#2a2440] pb-3">
+        <div>
+          <h2 class="text-base font-bold text-white">Studio Settings — Gemini API, Voice Replication & Role Prompt</h2>
+          <p class="text-xs text-[#9e96b8]">Configure your `GEMINI_API_KEY`, TTS / Replicated Voice ID, and `ROLE_PROMPT`</p>
+        </div>
+        <button id="closeSettingsBtn" class="text-gray-400 hover:text-white text-lg px-2">✕</button>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-purple-200">Gemini API Key (`GEMINI_API_KEY`)</label>
+        <div class="flex gap-2">
+          <input id="apiKeyInput" type="password" placeholder="AIzaSy..." class="flex-1 bg-[#0e0c16] border border-[#2a2440] rounded-lg px-3 py-2 text-xs text-white mono focus:outline-none focus:border-purple-400" />
+          <button id="toggleApiKeyVisBtn" type="button" class="px-3 py-2 rounded-lg bg-[#0e0c16] border border-[#2a2440] text-xs text-[#9e96b8] hover:text-white">
+            Show
+          </button>
+        </div>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-[#0e0c16] border border-[#2a2440] flex flex-col gap-2.5">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-semibold text-pink-200">🎙️ Vocal Read-Back & Gemini 3.8 Voice Replication</label>
+          <span class="text-xs text-[#9e96b8] mono">gemini-3.8-flash-tts</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs text-[#9e96b8] mb-1">Active TTS / Replicated Voice</label>
+            <input id="ttsVoiceInput" type="text" class="w-full bg-[#12101c] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white mono" value="Kore" placeholder="Kore, Aoede, Puck, or voice_..." />
+          </div>
+          <div>
+            <label class="block text-xs text-[#9e96b8] mb-1">Vocal Style Direction</label>
+            <input id="ttsStyleInput" type="text" class="w-full bg-[#12101c] border border-[#2a2440] rounded-lg px-3 py-1.5 text-xs text-white" value="intimate, honest, warm dream-pop vocal cadence" />
+          </div>
+        </div>
+        <details class="text-xs text-[#9e96b8] pt-1">
+          <summary class="cursor-pointer text-purple-300 hover:underline font-medium">+ Clone / Replicate Your Own Voice ID (`POST /v1beta/voices`)</summary>
+          <div class="mt-2 flex flex-col gap-2 p-2.5 rounded-lg bg-[#12101c] border border-[#2a2440]">
+            <p>Upload a 10–30s clean reference clip of your voice and a consent clip saying: <em>"I am the owner of this voice and I consent to Google using this voice to create a synthetic voice model."</em></p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs text-gray-300 mb-1">1. Reference Voice Clip (.wav)</label>
+                <input id="repSourceAudioInput" type="file" accept="audio/*" class="text-xs text-gray-300 w-full" />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-300 mb-1">2. Consent Clip (.wav)</label>
+                <input id="repConsentAudioInput" type="file" accept="audio/*" class="text-xs text-gray-300 w-full" />
+              </div>
+            </div>
+            <button id="createReplicatedVoiceBtn" type="button" class="self-start px-3 py-1.5 rounded-lg bg-pink-500/25 hover:bg-pink-500/40 border border-pink-400/40 text-xs font-semibold text-pink-100">
+              🧬 Create My Replicated Voice ID
+            </button>
+          </div>
+        </details>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-semibold text-purple-200">Core Role Prompt (`ROLE_PROMPT` — System Instruction)</label>
+          <button id="resetRolePromptBtn" type="button" class="text-xs text-purple-300 hover:underline">Reset Default</button>
+        </div>
+        <textarea id="rolePromptTextarea" rows="6" class="w-full bg-[#0e0c16] border border-[#2a2440] rounded-lg p-3 text-xs text-white mono leading-relaxed focus:outline-none focus:border-purple-400"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#2a2440]">
+        <button id="saveSettingsBtn" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white transition">
+          Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastNotification" class="no-print fixed bottom-24 right-5 z-50 hidden px-4 py-2.5 rounded-xl bg-[#181526] border border-purple-400/50 text-xs font-medium text-white shadow-2xl flex items-center gap-2">
+    <span id="toastIcon">✨</span>
+    <span id="toastText">Saved</span>
+  </div>
+
+  <!-- PRINTABLE LYRIC SHEET -->
+  <section id="printableSheet" class="print-only hidden p-8 max-w-3xl mx-auto text-black">
+    <h1 id="printTitle" class="text-2xl font-bold mb-1"></h1>
+    <p id="printSubtitle" class="text-sm text-gray-600 mb-4"></p>
+    <div id="printLyrics" class="whitespace-pre-wrap font-mono text-sm leading-relaxed mb-6"></div>
+    <hr class="my-4" />
+    <div id="printExtras" class="text-xs text-gray-700 whitespace-pre-wrap"></div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
